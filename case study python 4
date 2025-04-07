@@ -1,4 +1,4 @@
-# 📋 Harsh Gupta's To-Do List (Google Colab Version, NO class used)
+# 📋 Priyanshu's To-Do List (Google Colab Version, NO class used)
 
 import ipywidgets as widgets
 from IPython.display import display, clear_output
