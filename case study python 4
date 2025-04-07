@@ -1,0 +1,125 @@
+# 📋 Harsh Gupta's To-Do List (Google Colab Version, NO class used)
+
+import ipywidgets as widgets
+from IPython.display import display, clear_output
+
+# Stores all tasks
+tasks = []
+
+# Display box for task list
+task_display_box = widgets.VBox(layout=widgets.Layout(border='1px solid gray', padding='10px', width='100%'))
+
+# 🔁 Refresh UI with updated tasks
+def refresh_task_list():
+    task_widgets = []
+    for i, task in enumerate(tasks):
+        if task['completed']:
+            # Show completed task in gray with strikethrough
+            checkbox = widgets.HTML(
+                value=f"<span style='color:gray; text-decoration:line-through;'>✅ {task['description']} ⏰ {task['reminder']}</span>"
+            )
+        else:
+            # Show active task with checkbox
+            checkbox = widgets.Checkbox(
+                value=False,
+                description=f"{task['description']} ⏰ {task['reminder']}",
+                indent=False,
+                layout=widgets.Layout(width='auto')
+            )
+            checkbox.observe(lambda change, idx=i: mark_task_completed(change, idx), names='value')
+        task_widgets.append(checkbox)
+    task_display_box.children = task_widgets
+
+# ✅ Mark task as completed
+def mark_task_completed(change, index):
+    if change['new']:
+        tasks[index]['completed'] = True
+        show_message(f"✅ Task '{tasks[index]['description']}' marked as completed.", "success")
+        refresh_task_list()
+
+# ➕ Add new task
+def add_task_action(_):
+    desc = task_input.value.strip()
+    remind = reminder_input.value.strip() or "No reminder"
+    if desc:
+        tasks.append({'description': desc, 'reminder': remind, 'completed': False})
+        task_input.value = ""
+        reminder_input.value = ""
+        refresh_task_list()
+        show_message("📝 Task added successfully!", "success")
+    else:
+        show_message("⚠ Please enter a task name.", "error")
+
+# 🔔 Show all reminders
+def show_reminders(_):
+    with output_box:
+        clear_output()
+        found = False
+        print("🔔 Reminders Set:")
+        for task in tasks:
+            if task['reminder'] != "No reminder":
+                print(f"• {task['description']} → ⏰ {task['reminder']}")
+                found = True
+        if not found:
+            print("You have no reminders set.")
+
+# ❌ Delete a task by name
+def delete_task_action(_):
+    name = delete_input.value.strip().lower()
+    found = False
+    for task in tasks:
+        if task['description'].lower() == name:
+            tasks.remove(task)
+            found = True
+            break
+    if found:
+        show_message(f"🗑 Task '{name}' deleted.", "success")
+    else:
+        show_message("⚠ Task not found. Please check the name.", "error")
+    delete_input.value = ""
+    refresh_task_list()
+
+# 🖍 Show colored feedback messages
+def show_message(message, msg_type="info"):
+    colors = {
+        "success": "green",
+        "error": "red",
+        "info": "blue"
+    }
+    notification_box.value = f"<span style='color:{colors.get(msg_type, 'black')}; font-weight: bold;'>{message}</span>"
+
+# 🧩 Widgets
+task_input = widgets.Text(placeholder="📝 Enter your task...")
+reminder_input = widgets.Text(placeholder="⏰ Reminder (optional)...")
+add_button = widgets.Button(description="➕ Add Task", button_style='success')
+add_button.on_click(add_task_action)
+
+delete_input = widgets.Text(placeholder="✂ Task name to delete...")
+delete_button = widgets.Button(description="❌ Delete Task", button_style='danger')
+delete_button.on_click(delete_task_action)
+
+reminder_button = widgets.Button(description="🔔 View Reminders", button_style='info')
+reminder_button.on_click(show_reminders)
+
+notification_box = widgets.HTML("")
+output_box = widgets.Output()
+
+# 🧾 Layout
+title = widgets.HTML("<h2 style='color:darkgreen;'>📋 Priyanshu's To-Do List</h2>")
+
+# 🖥 Display UI
+display(
+    widgets.VBox([
+        title,
+        widgets.HBox([task_input, reminder_input, add_button]),
+        widgets.HBox([delete_input, delete_button]),
+        widgets.HBox([reminder_button]),
+        notification_box,
+        widgets.Label("🗂 Your Tasks:"),
+        task_display_box,
+        output_box
+    ])
+)
+
+# 🔄 Initial refresh
+refresh_task_list()
